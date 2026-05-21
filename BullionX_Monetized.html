@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BullionX · NSE/BSE Trading Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root[data-theme="dark"]{
+  --bg:#080a0e;--bg2:#0d1117;--card:#111519;--card2:#161c22;
+  --border:#2a2e35;--fg:#f0e6c8;--muted:#8a8070;
+  --acc:#c9922a;--acc2:#f0b429;--acc3:#ffe066;
+  --silver:#b8c0cc;--green:#2dba52;--red:#e84040;
+  --sidebar:#0a0c10;--input:#13171d;
+  --gold-glow:rgba(201,146,42,0.18);
+  --shadow:0 4px 32px rgba(0,0,0,0.7);
+  --shadow2:0 2px 16px rgba(201,146,42,0.15);
+  --shine:linear-gradient(135deg,#c9922a 0%,#ffe066 40%,#c9922a 60%,#a06a10 100%);
+  --bull-bg:rgba(201,146,42,0.06);
+}
+:root[data-theme="light"]{
+  --bg:#f2f8f2;--bg2:#e8f4e8;--card:#ffffff;--card2:#f0f7f0;
+  --border:#c0d8c0;--fg:#1a2e1a;--muted:#4a6a4a;
+  --acc:#1a7f37;--acc2:#2dba52;--acc3:#6dde8a;
+  --silver:#4a7a5a;--green:#1a7f37;--red:#c0392b;
+  --sidebar:#ffffff;--input:#f2f8f2;
+  --gold-glow:rgba(26,127,55,0.10);
+  --shadow:0 4px 24px rgba(0,0,0,0.10);
+  --shadow2:0 2px 12px rgba(26,127,55,0.12);
+  --shine:linear-gradient(135deg,#1a7f37 0%,#6dde8a 40%,#1a7f37 60%,#0e5a25 100%);
+  --bull-bg:rgba(26,127,55,0.05);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--fg);transition:background .3s,color .3s;}
+.app{display:flex;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:230px;min-height:100vh;background:var(--sidebar);border-right:1px solid var(--border);position:fixed;top:0;left:0;z-index:100;transition:transform .3s;display:flex;flex-direction:column;box-shadow:4px 0 40px rgba(0,0,0,0.4);}
+[data-theme="dark"] .sidebar{background:linear-gradient(180deg,#0a0c10 0%,#090b0f 100%);}
+.main{margin-left:230px;flex:1;}
+
+/* ── LOGO ── */
+.logo{padding:18px 16px 14px;text-align:center;border-bottom:1px solid var(--border);position:relative;}
+[data-theme="dark"] .logo::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:1px;background:var(--shine);opacity:.6;}
+.logo img{width:100px;height:100px;object-fit:contain;filter:drop-shadow(0 0 14px rgba(201,146,42,0.5));}
+[data-theme="light"] .logo img{filter:drop-shadow(0 2px 8px rgba(26,127,55,0.3));}
+.logo-name{font-family:'Cinzel',serif;font-size:1.2rem;font-weight:700;letter-spacing:.08em;background:var(--shine);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-top:4px;}
+.logo-sub{font-size:.7rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;}
+
+/* ── NAV ── */
+nav{flex:1;padding:10px 0;}
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:11px 20px;background:none;border:none;border-left:3px solid transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;text-align:left;transition:all .2s;letter-spacing:.04em;}
+.nav-btn:hover{color:var(--fg);background:var(--bull-bg);border-left-color:var(--acc);}
+.nav-btn.active{color:var(--acc2);background:var(--gold-glow);border-left-color:var(--acc2);font-weight:700;}
+[data-theme="dark"] .nav-btn.active{text-shadow:0 0 12px rgba(240,180,41,0.4);}
+.sidebar-bottom{padding:12px 16px 18px;border-top:1px solid var(--border);}
+.theme-toggle{width:100%;padding:9px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--fg);cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:.88rem;letter-spacing:.04em;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.theme-toggle:hover{border-color:var(--acc);color:var(--acc2);}
+.sidebar-footer{font-size:.68rem;color:var(--muted);text-align:center;margin-top:8px;letter-spacing:.06em;opacity:.7;}
+
+/* ── MOBILE ── */
+.mobile-header{display:none;position:fixed;top:0;left:0;right:0;background:var(--card);padding:10px 16px;align-items:center;justify-content:space-between;z-index:200;border-bottom:1px solid var(--border);}
+.hamburger{background:none;border:none;color:var(--fg);font-size:1.4rem;cursor:pointer;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99;}
+
+/* ── PAGES ── */
+.page{display:none;}.page.active{display:block;}
+.page-header{background:var(--card);border-bottom:1px solid var(--border);padding:16px 24px;position:relative;overflow:hidden;}
+[data-theme="dark"] .page-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--shine);opacity:.3;}
+.page-header h1{font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;color:var(--acc2);letter-spacing:.06em;}
+.page-header p{font-size:.8rem;color:var(--muted);margin-top:2px;}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;
+  box-shadow:var(--shadow2),inset 0 1px 0 rgba(255,255,255,0.04);transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;inset:0;border-radius:14px;background:linear-gradient(135deg,rgba(255,255,255,0.03) 0%,transparent 60%);pointer-events:none;}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.4),var(--shadow2);}
+[data-theme="dark"] .card{background:linear-gradient(145deg,#141a20 0%,#111519 100%);}
+.card-grid{display:grid;gap:16px;}.card-grid-2{grid-template-columns:repeat(2,1fr);}.card-grid-3{grid-template-columns:repeat(3,1fr);}.card-grid-4{grid-template-columns:repeat(4,1fr);}
+.card .val{font-size:1.45rem;font-weight:700;font-family:'Cinzel',serif;}
+.section-label{font-family:'Cinzel',serif;font-size:.85rem;font-weight:700;color:var(--acc2);margin:18px 0 10px;letter-spacing:.06em;}
+
+/* ── BUTTONS ── */
+.btn{padding:9px 18px;border:none;border-radius:9px;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .18s;letter-spacing:.05em;position:relative;overflow:hidden;}
+.btn::after{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:rgba(255,255,255,0.08);border-radius:9px 9px 0 0;pointer-events:none;}
+.btn:hover{transform:translateY(-1px);}.btn:active{transform:translateY(1px);}
+.btn-green{background:linear-gradient(145deg,#1d8a3c,#145e28);color:#fff;box-shadow:0 3px 12px rgba(29,138,60,.35),inset 0 1px 0 rgba(255,255,255,.15);}
+.btn-gold{background:linear-gradient(145deg,#c9922a,#8a6010);color:#fff;box-shadow:0 3px 12px rgba(201,146,42,.4),inset 0 1px 0 rgba(255,255,255,.2);}
+.btn-blue{background:linear-gradient(145deg,#1a6bc9,#1050a0);color:#fff;box-shadow:0 3px 10px rgba(26,107,201,.35),inset 0 1px 0 rgba(255,255,255,.15);}
+.btn-purple{background:linear-gradient(145deg,#6e40c9,#4a258a);color:#fff;box-shadow:0 3px 10px rgba(110,64,201,.35),inset 0 1px 0 rgba(255,255,255,.15);}
+.btn-red{background:linear-gradient(145deg,#c93030,#8a1818);color:#fff;box-shadow:0 3px 10px rgba(201,48,48,.35),inset 0 1px 0 rgba(255,255,255,.15);}
+.btn-sm{padding:5px 11px;font-size:.8rem;}.btn-full{width:100%;justify-content:center;margin-top:10px;}
+
+/* ── FORMS ── */
+.form-group{margin-bottom:14px;}
+.form-group label{font-size:.78rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600;}
+.form-control{width:100%;padding:9px 12px;background:var(--input);border:1px solid var(--border);border-radius:9px;color:var(--fg);font-family:'Rajdhani',sans-serif;font-size:.92rem;transition:border-color .2s;}
+.form-control:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--gold-glow);}
+.ctrl-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:14px 24px;background:var(--card2);border-bottom:1px solid var(--border);}
+
+/* ── SIGNALS ── */
+.signal-badge{display:inline-block;padding:8px 22px;border-radius:24px;font-size:1.5rem;font-weight:700;font-family:'Cinzel',serif;letter-spacing:.05em;}
+.signal-BUY{background:rgba(45,186,82,.12);color:#2dba52;border:1px solid rgba(45,186,82,.3);box-shadow:0 0 18px rgba(45,186,82,.2);}
+.signal-SELL{background:rgba(232,64,64,.12);color:#e84040;border:1px solid rgba(232,64,64,.3);box-shadow:0 0 18px rgba(232,64,64,.2);}
+.signal-HOLD{background:rgba(240,180,41,.12);color:#f0b429;border:1px solid rgba(240,180,41,.3);box-shadow:0 0 18px rgba(240,180,41,.2);}
+
+/* ── COLORS ── */
+.text-green{color:var(--green);}.text-red{color:var(--red);}.text-gold{color:var(--acc2);}.text-acc{color:var(--acc);}.text-silver{color:var(--silver);}.text-muted{color:var(--muted);}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:.85rem;}
+thead tr{background:var(--card2);}
+thead th{padding:10px 12px;text-align:left;font-family:'Cinzel',serif;font-size:.72rem;color:var(--acc);letter-spacing:.08em;font-weight:700;}
+tbody td{padding:9px 12px;}
+tbody tr{border-top:1px solid var(--border);cursor:pointer;transition:background .15s;}
+tbody tr:hover{background:var(--bull-bg);}
+
+/* ── LOADER ── */
+.loader{display:none;align-items:center;gap:10px;}.loader.show{display:flex;}
+.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--acc2);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── CHARTS ── */
+.chart-wrap{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:16px;box-shadow:var(--shadow2),inset 0 1px 0 rgba(255,255,255,.03);}
+.chart-wrap canvas{max-height:220px;width:100%;}
+
+/* ── MISC ── */
+.progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--shine);width:0%;}
+.reasons li{padding:7px 0;border-bottom:1px solid var(--border);list-style:none;font-size:.9rem;}
+.fib-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.88rem;}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.75rem;font-weight:700;}
+.badge-bull{background:rgba(45,186,82,.15);color:var(--green);border:1px solid rgba(45,186,82,.2);}
+.badge-bear{background:rgba(232,64,64,.15);color:var(--red);border:1px solid rgba(232,64,64,.2);}
+.badge-neut{background:rgba(240,180,41,.12);color:var(--acc2);border:1px solid rgba(240,180,41,.2);}
+
+/* ── HOME HERO ── */
+.home-hero{padding:32px 28px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+[data-theme="dark"] .home-hero{background:linear-gradient(135deg,#0d1117 0%,#131810 50%,#0d1117 100%);}
+[data-theme="light"] .home-hero{background:linear-gradient(135deg,#edf6ed 0%,#e0f0e0 100%);}
+[data-theme="dark"] .home-hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--shine);opacity:.4;}
+.home-hero h1{font-family:'Cinzel',serif;font-size:1.8rem;font-weight:900;letter-spacing:.05em;background:var(--shine);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.home-hero p{color:var(--muted);margin-top:6px;font-size:.95rem;letter-spacing:.04em;}
+.big-icon{font-size:2rem;margin-bottom:8px;}
+.card-title{font-family:'Cinzel',serif;font-size:.9rem;font-weight:700;color:var(--fg);margin-bottom:4px;letter-spacing:.04em;}
+.card-stat{font-size:.82rem;color:var(--muted);margin-bottom:8px;}
+
+/* ── SPACING ── */
+.p24{padding:24px;}.mb16{margin-bottom:16px;}.mb20{margin-bottom:20px;}.flex{display:flex;}.items-center{align-items:center;}.gap12{gap:12px;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--acc);}
+
+/* ── ADSENSE SLOTS ── */
+.ad-slot{width:100%;overflow:hidden;border-radius:10px;background:var(--card2);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;font-family:'Rajdhani',sans-serif;}
+.ad-slot-banner{height:90px;margin:10px 0;}
+.ad-slot-rect{height:250px;margin:12px 0;}
+.ad-slot-inline{height:100px;margin:16px 0;}
+.ad-label{font-size:.65rem;color:var(--muted);text-align:right;padding:2px 6px;letter-spacing:.04em;opacity:.6;}
+
+/* ── AFFILIATE SECTION ── */
+.aff-section{padding:24px;background:var(--bg);}
+.aff-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:12px;}
+.aff-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 14px;text-align:center;text-decoration:none;transition:all .2s;position:relative;overflow:hidden;display:block;}
+.aff-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.03) 0%,transparent 60%);pointer-events:none;}
+.aff-card:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,0,0,.4),var(--shadow2);border-color:var(--acc);}
+.aff-logo{font-size:2rem;margin-bottom:8px;}
+.aff-name{font-family:'Cinzel',serif;font-size:.85rem;font-weight:700;color:var(--fg);letter-spacing:.04em;margin-bottom:4px;}
+.aff-tag{font-size:.75rem;color:var(--muted);margin-bottom:10px;line-height:1.4;}
+.aff-cta{display:inline-block;padding:6px 14px;background:linear-gradient(145deg,#c9922a,#8a6010);color:#fff;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:.8rem;font-weight:700;letter-spacing:.05em;}
+[data-theme="light"] .aff-cta{background:linear-gradient(145deg,#1a7f37,#0e5a25);}
+.aff-disc{font-size:.68rem;color:var(--muted);text-align:center;margin-top:10px;opacity:.7;line-height:1.5;}
+.aff-earn{position:absolute;top:10px;right:10px;background:rgba(45,186,82,.15);color:var(--green);border:1px solid rgba(45,186,82,.2);border-radius:8px;font-size:.68rem;font-weight:700;padding:2px 7px;letter-spacing:.04em;}
+
+/* ── PREMIUM MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:18px;max-width:520px;width:100%;padding:32px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+[data-theme="dark"] .modal-box{background:linear-gradient(145deg,#141a20,#111519);}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;}
+.modal-title{font-family:'Cinzel',serif;font-size:1.3rem;font-weight:900;background:var(--shine);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;}
+.modal-sub{color:var(--muted);font-size:.88rem;margin-bottom:20px;}
+.plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+.plan-card{border:2px solid var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;position:relative;}
+.plan-card:hover,.plan-card.selected{border-color:var(--acc2);background:var(--gold-glow);}
+.plan-card.popular::before{content:'POPULAR';position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(145deg,#c9922a,#8a6010);color:#fff;font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:8px;font-family:'Rajdhani',sans-serif;letter-spacing:.05em;}
+[data-theme="light"] .plan-card.popular::before{background:linear-gradient(145deg,#1a7f37,#0e5a25);}
+.plan-price{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:900;color:var(--acc2);margin:8px 0 4px;}
+.plan-period{font-size:.75rem;color:var(--muted);}
+.plan-name{font-size:.85rem;font-weight:700;color:var(--fg);margin-bottom:8px;}
+.plan-feature{font-size:.75rem;color:var(--muted);margin-bottom:3px;}
+.premium-features{list-style:none;margin-bottom:20px;}
+.premium-features li{padding:6px 0;border-bottom:1px solid var(--border);font-size:.88rem;display:flex;align-items:center;gap:8px;}
+.premium-features li:last-child{border:none;}
+.pf-icon{color:var(--green);font-size:.9rem;}
+
+/* ── PREMIUM BADGE ── */
+.premium-badge{display:inline-block;padding:2px 8px;background:linear-gradient(145deg,#c9922a,#8a6010);color:#fff;border-radius:6px;font-size:.65rem;font-weight:700;font-family:'Rajdhani',sans-serif;letter-spacing:.06em;vertical-align:middle;margin-left:6px;}
+[data-theme="light"] .premium-badge{background:linear-gradient(145deg,#1a7f37,#0e5a25);}
+.nav-pro-btn{background:linear-gradient(145deg,rgba(201,146,42,.15),rgba(201,146,42,.05));border-left:3px solid var(--acc2) !important;color:var(--acc2) !important;}
+[data-theme="light"] .nav-pro-btn{background:linear-gradient(145deg,rgba(26,127,55,.12),rgba(26,127,55,.04));border-left-color:var(--green)!important;color:var(--green)!important;}
+
+@media(max-width:768px){
+  .aff-grid{grid-template-columns:repeat(2,1fr);}
+  .plan-grid{grid-template-columns:1fr;}
+}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;padding-top:56px;}
+  .mobile-header{display:flex;}
+  .overlay.show{display:block;}
+  .card-grid-4{grid-template-columns:repeat(2,1fr);}
+  .card-grid-3{grid-template-columns:repeat(2,1fr);}
+}
+
+/* ── LEGAL PAGES ── */
+.legal-wrap{max-width:820px;margin:0 auto;padding:32px 24px;}
+.legal-wrap h1{font-family:'Cinzel',serif;font-size:1.4rem;font-weight:700;color:var(--acc2);letter-spacing:.06em;margin-bottom:6px;}
+.legal-wrap .legal-date{font-size:.78rem;color:var(--muted);margin-bottom:28px;letter-spacing:.04em;}
+.legal-wrap h2{font-family:'Cinzel',serif;font-size:.95rem;font-weight:700;color:var(--acc);letter-spacing:.05em;margin:24px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.legal-wrap p{font-size:.88rem;color:var(--fg);line-height:1.75;margin-bottom:10px;}
+.legal-wrap ul{padding-left:20px;margin-bottom:10px;}
+.legal-wrap ul li{font-size:.88rem;color:var(--fg);line-height:1.75;margin-bottom:4px;}
+.legal-wrap a{color:var(--acc2);text-decoration:none;}
+.legal-wrap a:hover{text-decoration:underline;}
+.legal-banner{background:rgba(232,64,64,.1);border:1px solid rgba(232,64,64,.3);border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;gap:14px;align-items:flex-start;}
+.legal-banner .icon{font-size:1.6rem;flex-shrink:0;}
+.legal-banner p{margin:0;font-size:.88rem;line-height:1.65;color:var(--fg);}
+.legal-banner b{color:var(--red);}
+.legal-toc{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:28px;}
+.legal-toc h3{font-family:'Cinzel',serif;font-size:.82rem;color:var(--muted);letter-spacing:.08em;margin-bottom:10px;}
+.legal-toc ol{padding-left:18px;}
+.legal-toc ol li{font-size:.84rem;color:var(--acc);margin-bottom:4px;cursor:pointer;}
+.legal-toc ol li:hover{color:var(--acc2);}
+.legal-footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--border);font-size:.78rem;color:var(--muted);text-align:center;line-height:1.8;}
+.consent-bar{position:fixed;bottom:0;left:0;right:0;z-index:999;background:var(--card);border-top:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 -4px 24px rgba(0,0,0,.3);}
+.consent-bar p{flex:1;font-size:.82rem;color:var(--muted);line-height:1.5;min-width:200px;}
+.consent-bar p a{color:var(--acc2);}
+.consent-bar .cbtn{padding:8px 18px;border:none;border-radius:8px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;}
+.consent-accept{background:linear-gradient(145deg,#1d8a3c,#145e28);color:#fff;}
+.consent-decline{background:var(--card2);border:1px solid var(--border)!important;border:none;color:var(--muted);}
+
+</style>
+</head>
+<body>
+
+<div class="mobile-header">
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+  <span style="font-family:'Cinzel',serif;font-weight:700;background:var(--shine);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">BullionX</span>
+  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtnMobile" style="margin:0;width:auto;padding:6px 10px;border-radius:8px;font-size:.8rem;">🌙</button>
+</div>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <img src="''' + logo_b64 + '''" alt="BullionX"/>
+      <div class="logo-name">BullionX</div>
+      <div class="logo-sub">NSE · BSE · Pro</div>
+    </div>
+    <nav>
+      <button class="nav-btn active" onclick="showPage('home',this)">🏠&nbsp; Home</button>
+      <button class="nav-btn" onclick="showPage('analyser',this)">🔍&nbsp; Analyser</button>
+      <button class="nav-btn" onclick="showPage('scanner',this)">📡&nbsp; Scanner</button>
+      <button class="nav-btn" onclick="showPage('watchlist',this)">⭐&nbsp; Watchlist</button>
+      <button class="nav-btn" onclick="showPage('backtest',this)">📊&nbsp; Backtester</button>
+      <button class="nav-btn" onclick="showPage('patterns',this)">🕯️&nbsp; Patterns</button>
+      <button class="nav-btn" onclick="showPage('brokers',this)">🤝&nbsp; Open Demat Account</button>
+      <button class="nav-btn nav-pro-btn" onclick="showPremiumModal()">⭐&nbsp; Go Pro — ₹199/mo</button>
+      <button class="nav-btn" onclick="showPage('disclaimer',this)">⚠️&nbsp; Disclaimer</button>
+      <button class="nav-btn" onclick="showPage('privacy',this)">🔒&nbsp; Privacy Policy</button>
+      <button class="nav-btn" onclick="showPage('terms',this)">📜&nbsp; Terms of Use</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙&nbsp; Switch to Light</button>
+      <div class="sidebar-footer">© 2025 Aditya Babaji Jyoti Awate<br/>BullionX · For Educational Use Only</div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="page active" id="page-home">
+      <div class="home-hero">
+        <h1>BullionX Trading Pro</h1>
+        <p>Technical analysis · Scanner · Backtester · Pattern detection</p>
+        <div style="margin-top:14px;padding:10px 16px;background:rgba(232,64,64,.1);border:1px solid rgba(232,64,64,.25);border-radius:10px;font-size:.8rem;color:var(--red);line-height:1.6;">
+          ⚠️ <b>Educational Tool Only</b> — All signals are simulated. Not financial advice. Not SEBI registered.
+          <a href="#" onclick="showPage('disclaimer',null)" style="color:var(--acc2);margin-left:6px;">Read Disclaimer →</a>
+        </div>
+      </div>
+      <!-- AdSense Banner Top -->
+      <div style="padding:10px 24px 0">
+        <div class="ad-label">Advertisement</div>
+        <!-- REPLACE data-ad-client and data-ad-slot with your real AdSense values -->
+        <div class="ad-slot ad-slot-banner" id="ad-home-top">
+          <ins class="adsbygoogle" style="display:block;width:100%;height:90px"
+            data-ad-client="ca-pub-XXXXXXXXXXXXXXXXX"
+            data-ad-slot="XXXXXXXXXX"
+            data-ad-format="horizontal"
+            data-full-width-responsive="true"></ins>
+        </div>
+      </div>
+
+      <div class="p24">
+        <div class="section-label">🚀 Modules</div>
+        <div class="card-grid card-grid-3 mb20">
+          <div class="card"><div class="big-icon">🔍</div><div class="card-title">Analyser</div><div class="card-stat">RSI · MACD · Fibonacci · ATR</div><button class="btn btn-green btn-full" onclick="showPage('analyser',null)">Open Analyser</button></div>
+          <div class="card"><div class="big-icon">📡</div><div class="card-title">Scanner</div><div class="card-stat text-green" id="home-scan-stat">Ready</div><button class="btn btn-gold btn-full" onclick="showPage('scanner',null)">Run Scanner</button></div>
+          <div class="card"><div class="big-icon">⭐</div><div class="card-title">Watchlist</div><div class="card-stat text-acc" id="home-wl-stat">5 stocks</div><button class="btn btn-blue btn-full" onclick="showPage('watchlist',null)">View Watchlist</button></div>
+          <div class="card"><div class="big-icon">📊</div><div class="card-title">Backtester</div><div class="card-stat text-gold" id="home-bt-stat">Not run</div><button class="btn btn-gold btn-full" onclick="showPage('backtest',null)">Run Backtest</button></div>
+          <div class="card"><div class="big-icon">🕯️</div><div class="card-title">Patterns</div><div class="card-stat text-silver" id="home-pat-stat">No scan</div><button class="btn btn-purple btn-full" onclick="showPage('patterns',null)">Detect Patterns</button></div>
+          <!-- Pro Card -->
+          <div class="card" style="cursor:pointer;border-color:var(--acc)" onclick="showPremiumModal()">
+            <div class="big-icon">⭐</div>
+            <div class="card-title">Go Pro <span class="premium-badge">₹199/mo</span></div>
+            <div class="card-stat">Alerts · News · More stocks · No ads</div>
+            <button class="btn btn-gold btn-full">Upgrade to Pro</button>
+          </div>
+        </div>
+
+        <!-- AdSense Rectangle mid-page -->
+        <div class="ad-label">Advertisement</div>
+        <div class="ad-slot ad-slot-inline" id="ad-home-mid">
+          <ins class="adsbygoogle" style="display:block;width:100%;height:100px"
+            data-ad-client="ca-pub-XXXXXXXXXXXXXXXXX"
+            data-ad-slot="XXXXXXXXXX"
+            data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+        </div>
+      </div>
+
+      <!-- Affiliate / Broker Section -->
+      <div class="aff-section">
+        <div class="section-label">🤝 Open a Demat Account — Start Trading Today</div>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:4px;">We may earn a commission when you open an account through these links, at no extra cost to you. <a href="#" onclick="showPage('disclaimer',null)" style="color:var(--acc2);">Disclosure →</a></p>
+        <div class="aff-grid">
+
+          <a class="aff-card" href="https://zerodha.com/?c=YOUR_REF_CODE" target="_blank" rel="noopener sponsored">
+            <div class="aff-earn">₹300/referral</div>
+            <div class="aff-logo">🟢</div>
+            <div class="aff-name">Zerodha</div>
+            <div class="aff-tag">India's largest broker · ₹0 equity delivery · Kite platform</div>
+            <div class="aff-cta">Open Free Account →</div>
+          </a>
+
+          <a class="aff-card" href="https://upstox.com/open-demat-account/?f=YOUR_REF_CODE" target="_blank" rel="noopener sponsored">
+            <div class="aff-earn">₹1200/referral</div>
+            <div class="aff-logo">🔵</div>
+            <div class="aff-name">Upstox</div>
+            <div class="aff-tag">Trusted by 1 Cr+ investors · Advanced charts · Low brokerage</div>
+            <div class="aff-cta">Open Free Account →</div>
+          </a>
+
+          <a class="aff-card" href="https://www.angelone.in/open-demat-account?referral=YOUR_REF_CODE" target="_blank" rel="noopener sponsored">
+            <div class="aff-earn">₹500/referral</div>
+            <div class="aff-logo">🟠</div>
+            <div class="aff-name">Angel One</div>
+            <div class="aff-tag">SmartAPI · Free research · 50+ years trusted brand</div>
+            <div class="aff-cta">Open Free Account →</div>
+          </a>
+
+          <a class="aff-card" href="https://groww.in/open-demat-account?ref=YOUR_REF_CODE" target="_blank" rel="noopener sponsored">
+            <div class="aff-earn">₹600/referral</div>
+            <div class="aff-logo">🌱</div>
+            <div class="aff-name">Groww</div>
+            <div class="aff-tag">Best for beginners · Stocks + MF + US stocks · Simple UI</div>
+            <div class="aff-cta">Open Free Account →</div>
+          </a>
+
+        </div>
+        <p class="aff-disc">* Affiliate Disclosure: BullionX may earn a referral commission if you open an account using the links above. This does not affect our analysis or recommendations. All platforms listed are SEBI-registered stockbrokers.</p>
+      </div>
+
+      <!-- Bottom AdSense -->
+      <div style="padding:0 24px 24px">
+        <div class="ad-label">Advertisement</div>
+        <div class="ad-slot ad-slot-banner" id="ad-home-bot">
+          <ins class="adsbygoogle" style="display:block;width:100%;height:90px"
+            data-ad-client="ca-pub-XXXXXXXXXXXXXXXXX"
+            data-ad-slot="XXXXXXXXXX"
+            data-ad-format="horizontal"
+            data-full-width-responsive="true"></ins>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-analyser">
+      <div class="page-header"><h1>🔍 Stock Analyser</h1><p>RSI · MACD · Fibonacci · Trade Levels</p></div>
+      <div class="ctrl-row">
+        <div class="form-group"><label>Symbol</label><select class="form-control" id="an-stock" style="width:180px"></select></div>
+        <div class="form-group"><label>Custom</label><input class="form-control" id="an-custom" placeholder="e.g. IRCTC.NS"/></div>
+        <div class="form-group"><label>Period</label><select class="form-control" id="an-period"><option>1mo</option><option>3mo</option><option selected>6mo</option><option>1y</option></select></div>
+        <button class="btn btn-green" onclick="runAnalyser()">⚡ Analyse</button>
+        <div class="loader" id="an-loader"><div class="spinner"></div><span>Fetching...</span></div>
+      </div>
+      <div class="p24" id="an-results" style="display:none">
+        <div class="flex items-center gap12 mb16">
+          <div class="signal-badge" id="an-signal-badge">—</div>
+          <div><div id="an-score-text" style="font-family:'Cinzel',serif;font-size:1rem;font-weight:700;"></div><div id="an-symbol-text" style="font-size:.85rem;color:var(--muted);letter-spacing:.04em;"></div></div>
+          <button class="btn btn-gold btn-sm" onclick="addToWatchlist()">⭐ Add to Watchlist</button>
+        </div>
+        <div class="card-grid card-grid-2 mb16">
+          <div class="card">
+            <div class="section-label">📊 Indicators</div>
+            <div class="card-grid card-grid-2" style="gap:10px">
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Price</div><div id="r-price" style="font-size:1.1rem;font-weight:700;">—</div></div>
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">RSI</div><div id="r-rsi" style="font-size:1.1rem;font-weight:700;">—</div></div>
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">EMA10</div><div id="r-ema10">—</div></div>
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">EMA20</div><div id="r-ema20">—</div></div>
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Stoch %K</div><div id="r-stochk">—</div></div>
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Stoch %D</div><div id="r-stochd">—</div></div>
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">ATR</div><div id="r-atr">—</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="section-label">🎯 Trade Levels</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Entry</div><div class="text-green" id="r-entry" style="font-weight:700;">—</div></div>
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Stop Loss</div><div class="text-red" id="r-sl" style="font-weight:700;">—</div></div>
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Target 1</div><div class="text-green" id="r-t1" style="font-weight:700;">—</div></div>
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Target 2</div><div class="text-green" id="r-t2" style="font-weight:700;">—</div></div>
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Risk</div><div class="text-red" id="r-risk" style="font-weight:700;">—</div></div>
+              <div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Reward</div><div class="text-green" id="r-reward" style="font-weight:700;">—</div></div>
+              <div style="grid-column:span 2"><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">R:R Ratio</div><div class="text-gold" id="r-rr" style="font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;">—</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-grid card-grid-2 mb16">
+          <div class="chart-wrap"><canvas id="chart-price"></canvas></div>
+          <div class="chart-wrap"><canvas id="chart-rsi"></canvas></div>
+          <div class="chart-wrap"><canvas id="chart-macd"></canvas></div>
+          <div class="chart-wrap"><canvas id="chart-stoch"></canvas></div>
+        </div>
+        <div class="card-grid card-grid-2">
+          <div class="card"><div class="section-label">📐 Fibonacci Levels</div><div id="r-fib"></div></div>
+          <div class="card"><div class="section-label">📋 Signal Reasons</div><ul class="reasons" id="r-reasons"></ul></div>
+        </div>
+
+        <!-- AdSense after analysis results -->
+        <div class="ad-label" style="margin-top:16px">Advertisement</div>
+        <div class="ad-slot ad-slot-inline">
+          <ins class="adsbygoogle" style="display:block;width:100%;height:100px"
+            data-ad-client="ca-pub-XXXXXXXXXXXXXXXXX"
+            data-ad-slot="XXXXXXXXXX"
+            data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+        </div>
+
+        <!-- Inline broker CTA after analysis -->
+        <div class="card" style="margin-top:16px;background:var(--gold-glow);border-color:var(--acc)">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+              <div style="font-family:'Cinzel',serif;font-size:.9rem;font-weight:700;color:var(--acc2);">Ready to trade? Open a free demat account</div>
+              <div style="font-size:.8rem;color:var(--muted);margin-top:2px;">Use BullionX signals with a real broker. SEBI-registered platforms below.</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <a href="https://zerodha.com/?c=YOUR_REF_CODE" target="_blank" rel="noopener sponsored" class="btn btn-green btn-sm">Zerodha →</a>
+              <a href="https://upstox.com/open-demat-account/?f=YOUR_REF_CODE" target="_blank" rel="noopener sponsored" class="btn btn-blue btn-sm">Upstox →</a>
+              <a href="https://www.angelone.in/open-demat-account?referral=YOUR_REF_CODE" target="_blank" rel="noopener sponsored" class="btn btn-gold btn-sm">Angel One →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-scanner">
+      <div class="page-header"><h1>📡 Market Scanner</h1><p>Scan 30 NSE stocks simultaneously</p></div>
+      <div class="ctrl-row">
+        <select class="form-control" id="sc-period"><option>1mo</option><option selected>3mo</option><option>6mo</option></select>
+        <select class="form-control" id="sc-filter" onchange="filterScanner()"><option>All</option><option>BUY only</option><option>SELL only</option><option>HOLD only</option></select>
+        <button class="btn btn-green" onclick="runScanner()">⚡ Scan All</button>
+        <div class="loader" id="sc-loader"><div class="spinner"></div></div>
+      </div>
+      <!-- Ad above scanner results -->
+      <div style="padding:8px 24px 0">
+        <div class="ad-label">Advertisement</div>
+        <div class="ad-slot ad-slot-banner">
+          <ins class="adsbygoogle" style="display:block;width:100%;height:90px"
+            data-ad-client="ca-pub-XXXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX"
+            data-ad-format="horizontal" data-full-width-responsive="true"></ins>
+        </div>
+      </div>
+      <div class="p24">
+        <div class="progress-bar mb16" id="sc-progress-wrap" style="display:none"><div class="progress-fill" id="sc-progress"></div></div>
+        <div class="card-grid card-grid-3 mb16" id="sc-summary" style="display:none">
+          <div class="card" style="text-align:center"><div style="color:var(--green);font-family:'Cinzel',serif;font-size:.82rem;letter-spacing:.08em;">BUY</div><div style="font-size:2.5rem;font-weight:700;color:var(--green);" id="sc-buy-count">0</div></div>
+          <div class="card" style="text-align:center"><div style="color:var(--red);font-family:'Cinzel',serif;font-size:.82rem;letter-spacing:.08em;">SELL</div><div style="font-size:2.5rem;font-weight:700;color:var(--red);" id="sc-sell-count">0</div></div>
+          <div class="card" style="text-align:center"><div style="color:var(--acc2);font-family:'Cinzel',serif;font-size:.82rem;letter-spacing:.08em;">HOLD</div><div style="font-size:2.5rem;font-weight:700;color:var(--acc2);" id="sc-hold-count">0</div></div>
+        </div>
+        <div class="table-wrap" id="sc-table-wrap" style="display:none">
+          <table><thead><tr><th>Symbol</th><th>Signal</th><th>Score</th><th>Price</th><th>RSI</th><th>Entry</th><th>SL</th><th>Target 2</th><th>R:R</th></tr></thead><tbody id="sc-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-watchlist">
+      <div class="page-header"><h1>⭐ Watchlist</h1><p>Track your favourite NSE/BSE stocks</p></div>
+      <div class="ctrl-row">
+        <input class="form-control" id="wl-add-input" placeholder="Symbol.NS" onkeydown="if(event.key==='Enter')addWatchlistStock()"/>
+        <button class="btn btn-green" onclick="addWatchlistStock()">+ Add</button>
+        <button class="btn btn-gold" onclick="refreshWatchlist()">↻ Refresh</button>
+        <button class="btn btn-red" onclick="clearWatchlist()">✕ Clear All</button>
+        <div class="loader" id="wl-loader"><div class="spinner"></div></div>
+      </div>
+      <div class="p24">
+        <div class="table-wrap">
+          <table><thead><tr><th>Symbol</th><th>Signal</th><th>Score</th><th>Price</th><th>RSI</th><th>Entry</th><th>SL</th><th>Target 2</th><th>R:R</th><th></th></tr></thead><tbody id="wl-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-backtest">
+      <div class="page-header"><h1>📊 Backtester</h1><p>Simulate strategy performance on historical data</p></div>
+      <div class="ctrl-row">
+        <select class="form-control" id="bt-stock"></select>
+        <input class="form-control" id="bt-custom" placeholder="custom symbol"/>
+        <select class="form-control" id="bt-period"><option>1mo</option><option>3mo</option><option>6mo</option><option selected>1y</option></select>
+        <input class="form-control" id="bt-capital" value="100000" style="width:120px"/>
+        <button class="btn btn-green" onclick="runBacktest()">⚡ Run</button>
+        <div class="loader" id="bt-loader"><div class="spinner"></div></div>
+      </div>
+      <div class="p24" id="bt-results" style="display:none">
+        <div class="card-grid card-grid-4 mb16" id="bt-summary-cards"></div>
+        <div class="section-label">Trade History</div>
+        <div class="table-wrap"><table><thead><tr><th>Entry Date</th><th>Exit Date</th><th>Entry</th><th>Exit</th><th>Qty</th><th>P&L</th><th>P&L%</th><th>Result</th></tr></thead><tbody id="bt-tbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-patterns">
+      <div class="page-header"><h1>🕯️ Pattern Detection</h1><p>Candlestick pattern recognition</p></div>
+      <div class="ctrl-row">
+        <select class="form-control" id="pt-stock"></select>
+        <input class="form-control" id="pt-custom" placeholder="custom symbol"/>
+        <select class="form-control" id="pt-period"><option>1mo</option><option selected>3mo</option><option>6mo</option></select>
+        <button class="btn btn-purple" onclick="runPatterns()">🔎 Detect</button>
+        <div class="loader" id="pt-loader"><div class="spinner"></div></div>
+      </div>
+      <div class="p24">
+        <div class="table-wrap" id="pt-table-wrap" style="display:none">
+          <table><thead><tr><th>Date</th><th>Pattern</th><th>Bias</th><th>Description</th></tr></thead><tbody id="pt-tbody"></tbody></table>
+        </div>
+        <div id="pt-empty" style="text-align:center;padding:60px;color:var(--muted);font-family:'Cinzel',serif;letter-spacing:.06em;">Select a stock and detect patterns</div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         DISCLAIMER PAGE
+    ══════════════════════════════════════ -->
+    <div class="page" id="page-disclaimer">
+      <div class="page-header"><h1>⚠️ Disclaimer</h1><p>Important legal information — please read carefully</p></div>
+      <div class="legal-wrap">
+        <h1>Disclaimer</h1>
+        <div class="legal-date">Last updated: 21 May 2025 &nbsp;|&nbsp; Owner: Aditya Babaji Jyoti Awate &nbsp;|&nbsp; Platform: BullionX</div>
+
+        <div class="legal-banner">
+          <div class="icon">🚨</div>
+          <p><b>NOT FINANCIAL ADVICE.</b> BullionX is a technical analysis tool for <b>educational and informational purposes only</b>. Nothing on this platform constitutes financial, investment, legal, or tax advice. All signals, indicators, and analysis are <b>simulated and hypothetical</b>. Past performance does not guarantee future results. Always consult a SEBI-registered investment advisor before making any investment decision.</p>
+        </div>
+
+        <div class="legal-toc">
+          <h3>TABLE OF CONTENTS</h3>
+          <ol>
+            <li onclick="document.getElementById('d1').scrollIntoView({behavior:'smooth'})">No Investment Advice</li>
+            <li onclick="document.getElementById('d2').scrollIntoView({behavior:'smooth'})">Simulated Data</li>
+            <li onclick="document.getElementById('d3').scrollIntoView({behavior:'smooth'})">SEBI Compliance</li>
+            <li onclick="document.getElementById('d4').scrollIntoView({behavior:'smooth'})">Global Regulatory Notice</li>
+            <li onclick="document.getElementById('d5').scrollIntoView({behavior:'smooth'})">Risk Warning</li>
+            <li onclick="document.getElementById('d6').scrollIntoView({behavior:'smooth'})">Limitation of Liability</li>
+            <li onclick="document.getElementById('d7').scrollIntoView({behavior:'smooth'})">No Guarantee of Accuracy</li>
+            <li onclick="document.getElementById('d8').scrollIntoView({behavior:'smooth'})">Third Party Links</li>
+          </ol>
+        </div>
+
+        <h2 id="d1">1. No Investment Advice</h2>
+        <p>BullionX does not provide personalized investment advice, portfolio management, or financial planning services. The platform is not registered as an Investment Adviser under SEBI (Investment Advisers) Regulations, 2013, nor as a Research Analyst under SEBI (Research Analysts) Regulations, 2014.</p>
+        <p>Any buy, sell, or hold signals generated by BullionX are based purely on technical indicators applied to simulated price data. These signals do not take into account your personal financial situation, risk tolerance, investment objectives, or tax situation. You should not act upon any information on this platform without seeking independent professional advice.</p>
+
+        <h2 id="d2">2. Simulated & Hypothetical Data</h2>
+        <p>All price data, signals, backtesting results, and analysis shown on BullionX are <b>simulated and hypothetical</b>. They are generated algorithmically for educational demonstration purposes and do not represent real-time or historical market data from NSE, BSE, or any other recognized stock exchange.</p>
+        <p>Backtesting results shown are hypothetical. Hypothetical performance results have many inherent limitations and do not reflect actual trading. Actual results may differ materially from those shown.</p>
+
+        <h2 id="d3">3. SEBI Compliance Notice (India)</h2>
+        <p>This platform operates in compliance with the following SEBI guidelines:</p>
+        <ul>
+          <li>We are <b>not a SEBI-registered Investment Adviser</b> and do not charge fees for investment advice.</li>
+          <li>We are <b>not a SEBI-registered Research Analyst</b> and do not publish research reports.</li>
+          <li>We do not hold any SEBI license for Stock Broking, Portfolio Management, or Depository Participant services.</li>
+          <li>Users are advised to verify all information independently and consult SEBI-registered professionals.</li>
+          <li>For grievances, users may contact SEBI at <a href="https://scores.gov.in" target="_blank">scores.gov.in</a> or call 1800-266-7575.</li>
+        </ul>
+        <p>SEBI Registration: Not applicable — this is an educational technology platform, not a financial services provider.</p>
+
+        <h2 id="d4">4. Global Regulatory Notice</h2>
+        <p>For users outside India: BullionX is an educational tool and does not constitute financial advice under any jurisdiction including but not limited to:</p>
+        <ul>
+          <li><b>USA:</b> Not regulated by the SEC or FINRA. Not an investment adviser under the Investment Advisers Act of 1940.</li>
+          <li><b>UK:</b> Not authorized or regulated by the Financial Conduct Authority (FCA).</li>
+          <li><b>EU:</b> Not regulated under MiFID II or any EU financial directive.</li>
+          <li><b>Australia:</b> Not licensed under the Australian Financial Services License (AFSL).</li>
+          <li><b>UAE/GCC:</b> Not licensed by DFSA, FSRA, or any GCC financial regulator.</li>
+        </ul>
+        <p>Users from regulated jurisdictions should ensure compliance with their local laws before using this platform.</p>
+
+        <h2 id="d5">5. Risk Warning</h2>
+        <p>Investing in stocks, derivatives, and financial markets involves significant risk of loss. You may lose some or all of your invested capital. Market prices can be volatile and unpredictable. The following risks exist:</p>
+        <ul>
+          <li>Market risk — prices may move against your position</li>
+          <li>Liquidity risk — you may not be able to exit a position at the desired price</li>
+          <li>Leverage risk — F&O trading can amplify losses beyond your initial investment</li>
+          <li>Technology risk — software errors, data inaccuracies, or platform failures</li>
+          <li>Regulatory risk — changes in market rules or tax laws</li>
+        </ul>
+        <p><b>Never invest money you cannot afford to lose.</b></p>
+
+        <h2 id="d6">6. Limitation of Liability</h2>
+        <p>Aditya Babaji Jyoti Awate and BullionX shall not be liable for any direct, indirect, incidental, special, consequential, or punitive damages arising from your use of this platform, including but not limited to:</p>
+        <ul>
+          <li>Trading losses incurred based on signals from this platform</li>
+          <li>Loss of data or profits</li>
+          <li>Errors or inaccuracies in technical analysis</li>
+          <li>Unauthorized access to your account or data</li>
+          <li>Any decisions made based on information from this platform</li>
+        </ul>
+        <p>Your use of this platform is entirely at your own risk.</p>
+
+        <h2 id="d7">7. No Guarantee of Accuracy</h2>
+        <p>While we strive to provide accurate technical analysis tools, BullionX makes no warranty, express or implied, regarding the accuracy, completeness, timeliness, or reliability of any information on this platform. Technical indicators are mathematical tools and do not guarantee any particular outcome in financial markets.</p>
+
+        <h2 id="d8">8. Third Party Links & Affiliates</h2>
+        <p>BullionX may contain links to third-party websites (such as broker platforms, financial news sites). These links are provided for convenience only. We do not endorse, control, or take responsibility for the content or practices of any third-party website. If we receive affiliate commissions from such links, this will be clearly disclosed.</p>
+
+        <div class="legal-footer">
+          © 2025 Aditya Babaji Jyoti Awate · BullionX · All Rights Reserved<br/>
+          For queries: Contact through the platform · Last reviewed: 21 May 2025
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         PRIVACY POLICY PAGE
+    ══════════════════════════════════════ -->
+    <div class="page" id="page-privacy">
+      <div class="page-header"><h1>🔒 Privacy Policy</h1><p>How we collect, use and protect your data</p></div>
+      <div class="legal-wrap">
+        <h1>Privacy Policy</h1>
+        <div class="legal-date">Last updated: 21 May 2025 &nbsp;|&nbsp; Owner: Aditya Babaji Jyoti Awate &nbsp;|&nbsp; Platform: BullionX</div>
+
+        <div class="legal-banner">
+          <div class="icon">🔒</div>
+          <p><b>Your privacy matters.</b> BullionX is committed to protecting your personal information. This policy explains what data we collect, why we collect it, and how we protect it — in compliance with India's Digital Personal Data Protection Act 2023 (DPDPA), GDPR (EU), and global privacy standards.</p>
+        </div>
+
+        <h2>1. Data We Collect</h2>
+        <p>As a browser-based educational tool, BullionX currently operates without a backend server. However, we may collect:</p>
+        <ul>
+          <li><b>Usage data:</b> Pages visited, features used, time spent (via anonymous analytics)</li>
+          <li><b>Device data:</b> Browser type, operating system, screen resolution</li>
+          <li><b>Preferences:</b> Theme selection (dark/light), watchlist stocks — stored locally in your browser only</li>
+          <li><b>Contact info:</b> Only if you contact us directly via email</li>
+        </ul>
+        <p>We do <b>NOT</b> collect: your trading account details, financial data, Aadhaar/PAN numbers, bank information, or passwords.</p>
+
+        <h2>2. How We Use Your Data</h2>
+        <ul>
+          <li>To improve platform features and user experience</li>
+          <li>To understand how users interact with the platform</li>
+          <li>To respond to your queries or support requests</li>
+          <li>To comply with legal obligations</li>
+        </ul>
+        <p>We do <b>NOT</b> sell, rent, or trade your personal data to third parties.</p>
+
+        <h2>3. Local Storage</h2>
+        <p>Your watchlist, theme preferences, and settings are stored in your browser's local storage only. This data never leaves your device and is not transmitted to any server. You can clear this data anytime by clearing your browser's local storage or cache.</p>
+
+        <h2>4. Cookies</h2>
+        <p>BullionX may use minimal cookies for:</p>
+        <ul>
+          <li>Remembering your theme preference (dark/light mode)</li>
+          <li>Anonymous analytics (if enabled)</li>
+        </ul>
+        <p>We do not use advertising cookies or tracking pixels. You can disable cookies in your browser settings at any time.</p>
+
+        <h2>5. Your Rights (India — DPDPA 2023)</h2>
+        <ul>
+          <li><b>Right to access:</b> Request a copy of your personal data we hold</li>
+          <li><b>Right to correction:</b> Request correction of inaccurate data</li>
+          <li><b>Right to erasure:</b> Request deletion of your personal data</li>
+          <li><b>Right to grievance:</b> Lodge a complaint with the Data Protection Board of India</li>
+        </ul>
+
+        <h2>6. Your Rights (EU/UK — GDPR)</h2>
+        <ul>
+          <li>Right to access, rectification, erasure, and data portability</li>
+          <li>Right to object to processing and withdraw consent</li>
+          <li>Right to lodge a complaint with your local Data Protection Authority</li>
+        </ul>
+
+        <h2>7. Data Security</h2>
+        <p>We implement reasonable technical and organizational measures to protect your data from unauthorized access, disclosure, alteration, or destruction. However, no internet transmission is 100% secure, and we cannot guarantee absolute security.</p>
+
+        <h2>8. Children's Privacy</h2>
+        <p>BullionX is not intended for use by persons under the age of 18. We do not knowingly collect personal data from minors. If you believe a minor has provided us with personal data, please contact us immediately.</p>
+
+        <h2>9. Changes to This Policy</h2>
+        <p>We may update this Privacy Policy from time to time. We will notify users of significant changes by updating the date at the top of this page. Continued use of the platform after changes constitutes acceptance of the updated policy.</p>
+
+        <h2>10. Contact</h2>
+        <p>For privacy-related queries or to exercise your rights, contact: <b>Aditya Babaji Jyoti Awate</b> via the platform's contact section.</p>
+
+        <div class="legal-footer">
+          © 2025 Aditya Babaji Jyoti Awate · BullionX · All Rights Reserved<br/>
+          Compliant with India DPDPA 2023 · GDPR (EU/UK) · Global Privacy Standards
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TERMS OF USE PAGE
+    ══════════════════════════════════════ -->
+    <div class="page" id="page-terms">
+      <div class="page-header"><h1>📜 Terms of Use</h1><p>Rules and conditions for using BullionX</p></div>
+      <div class="legal-wrap">
+        <h1>Terms of Use</h1>
+        <div class="legal-date">Last updated: 21 May 2025 &nbsp;|&nbsp; Owner: Aditya Babaji Jyoti Awate &nbsp;|&nbsp; Platform: BullionX</div>
+
+        <div class="legal-banner">
+          <div class="icon">📜</div>
+          <p>By accessing or using BullionX, you agree to be bound by these Terms of Use. If you do not agree with any part of these terms, please do not use this platform. These terms constitute a legally binding agreement between you and <b>Aditya Babaji Jyoti Awate</b>.</p>
+        </div>
+
+        <h2>1. Acceptance of Terms</h2>
+        <p>By using BullionX, you confirm that:</p>
+        <ul>
+          <li>You are at least 18 years of age</li>
+          <li>You have read and understood these Terms of Use, Privacy Policy, and Disclaimer</li>
+          <li>You agree to use this platform for educational and informational purposes only</li>
+          <li>You will not use this platform for any unlawful purpose</li>
+        </ul>
+
+        <h2>2. Educational Purpose Only</h2>
+        <p>BullionX is strictly an educational and demonstration platform. The technical analysis tools, signals, and data provided are for learning purposes only and must not be used as the sole basis for any investment decision. You acknowledge that:</p>
+        <ul>
+          <li>All signals and analysis are simulated and hypothetical</li>
+          <li>No guarantee of profit or accuracy is made</li>
+          <li>Real money trading should only be done after consulting a SEBI-registered advisor</li>
+        </ul>
+
+        <h2>3. Prohibited Uses</h2>
+        <p>You agree NOT to:</p>
+        <ul>
+          <li>Use the platform for any illegal or unauthorized purpose</li>
+          <li>Redistribute, resell, or commercially exploit the platform without written permission from Aditya Babaji Jyoti Awate</li>
+          <li>Attempt to reverse engineer, copy, or replicate the platform's code without permission</li>
+          <li>Use automated bots or scrapers to access platform content</li>
+          <li>Misrepresent the platform's signals as guaranteed financial advice to third parties</li>
+          <li>Use the platform in a way that could damage, disable, or impair its functionality</li>
+        </ul>
+
+        <h2>4. Intellectual Property</h2>
+        <p>All content on BullionX — including but not limited to the BullionX name, logo, design, code, text, graphics, and features — is the intellectual property of <b>Aditya Babaji Jyoti Awate</b> and is protected under applicable copyright and trademark laws. Unauthorized reproduction or distribution is strictly prohibited.</p>
+
+        <h2>5. No Warranty</h2>
+        <p>BullionX is provided on an "as is" and "as available" basis without any warranties of any kind, either express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement.</p>
+
+        <h2>6. Limitation of Liability</h2>
+        <p>To the maximum extent permitted by applicable law, Aditya Babaji Jyoti Awate shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of profits, data, goodwill, or other intangible losses resulting from your use or inability to use the platform.</p>
+
+        <h2>7. Indemnification</h2>
+        <p>You agree to indemnify, defend, and hold harmless Aditya Babaji Jyoti Awate and BullionX from and against any claims, damages, losses, liabilities, costs, and expenses (including legal fees) arising from your use of the platform, your violation of these Terms, or your violation of any rights of a third party.</p>
+
+        <h2>8. Governing Law & Jurisdiction</h2>
+        <p>These Terms of Use shall be governed by and construed in accordance with the laws of <b>India</b>. Any dispute arising from or relating to these Terms shall be subject to the exclusive jurisdiction of the courts of <b>Maharashtra, India</b>. For international users, these terms shall also be read subject to applicable local laws.</p>
+
+        <h2>9. Affiliate Disclosure</h2>
+        <p>BullionX may contain affiliate links to third-party platforms (such as stock brokers). If you click these links and sign up or make a purchase, Aditya Babaji Jyoti Awate may receive a commission at no extra cost to you. All affiliate relationships will be clearly disclosed wherever applicable.</p>
+
+        <h2>10. Modifications</h2>
+        <p>Aditya Babaji Jyoti Awate reserves the right to modify, suspend, or discontinue BullionX at any time without notice. We also reserve the right to update these Terms of Use at any time. Continued use of the platform after changes constitutes acceptance of the updated terms.</p>
+
+        <h2>11. Severability</h2>
+        <p>If any provision of these Terms is found to be unenforceable or invalid under applicable law, that provision will be modified to the minimum extent necessary or severed, and the remaining provisions will continue in full force and effect.</p>
+
+        <h2>12. Contact</h2>
+        <p>For any questions, concerns, or legal notices regarding these Terms, please contact: <b>Aditya Babaji Jyoti Awate</b> through the platform.</p>
+
+        <div class="legal-footer">
+          © 2025 Aditya Babaji Jyoti Awate · BullionX · All Rights Reserved<br/>
+          Governed by Laws of India · Jurisdiction: Maharashtra, India<br/>
+          Last reviewed: 21 May 2025
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════
+     BROKERS PAGE
+══════════════════════════════════════ -->
+<div class="page" id="page-brokers" style="display:none">
+  <div class="page-header"><h1>🤝 Open a Demat Account</h1><p>Start trading with a SEBI-registered broker — we earn a small commission at no cost to you</p></div>
+
+  <!-- Top AdSense -->
+  <div style="padding:12px 24px 0">
+    <div class="ad-label">Advertisement</div>
+    <div class="ad-slot ad-slot-banner">
+      <ins class="adsbygoogle" style="display:block;width:100%;height:90px"
+        data-ad-client="ca-pub-XXXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX"
+        data-ad-format="horizontal" data-full-width-responsive="true"></ins>
+    </div>
+  </div>
+
+  <div class="aff-section">
+    <div class="section-label">🏆 Top Discount Brokers in India</div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.6;">All platforms below are SEBI-registered stockbrokers. BullionX earns an affiliate commission when you open an account through these links — at zero extra cost to you. <a href="#" onclick="showPage('disclaimer',null)" style="color:var(--acc2)">Read full disclosure →</a></p>
+
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px">
+
+      <!-- Zerodha -->
+      <a class="aff-card" href="https://zerodha.com/?c=YOUR_REF_CODE" target="_blank" rel="noopener sponsored" style="text-align:left;padding:24px">
+        <div class="aff-earn">Earn ₹300/referral</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+          <div style="font-size:2.4rem">🟢</div>
+          <div>
+            <div class="aff-name" style="font-size:1.1rem">Zerodha</div>
+            <div class="aff-tag" style="margin:0">India's #1 broker by active clients</div>
+          </div>
+        </div>
+        <ul style="list-style:none;margin-bottom:14px">
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ ₹0 brokerage on equity delivery</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ ₹20 flat fee on F&O & intraday</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ Kite — best-in-class charting platform</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ 1.5 Cr+ active clients</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ Coin for direct mutual funds</li>
+        </ul>
+        <div class="aff-cta" style="padding:10px 20px;font-size:.88rem;display:inline-block">Open Free Account with Zerodha →</div>
+      </a>
+
+      <!-- Upstox -->
+      <a class="aff-card" href="https://upstox.com/open-demat-account/?f=YOUR_REF_CODE" target="_blank" rel="noopener sponsored" style="text-align:left;padding:24px">
+        <div class="aff-earn">Earn ₹1200/referral</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+          <div style="font-size:2.4rem">🔵</div>
+          <div>
+            <div class="aff-name" style="font-size:1.1rem">Upstox</div>
+            <div class="aff-tag" style="margin:0">Backed by Tiger Global & Ratan Tata</div>
+          </div>
+        </div>
+        <ul style="list-style:none;margin-bottom:14px">
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ ₹0 account opening fee</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ Advanced charting with 100+ indicators</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ API access for algo trading</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ 1 Cr+ trusted investors</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ IPO & mutual fund investments</li>
+        </ul>
+        <div class="aff-cta" style="padding:10px 20px;font-size:.88rem;display:inline-block">Open Free Account with Upstox →</div>
+      </a>
+
+      <!-- Angel One -->
+      <a class="aff-card" href="https://www.angelone.in/open-demat-account?referral=YOUR_REF_CODE" target="_blank" rel="noopener sponsored" style="text-align:left;padding:24px">
+        <div class="aff-earn">Earn ₹500/referral</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+          <div style="font-size:2.4rem">🟠</div>
+          <div>
+            <div class="aff-name" style="font-size:1.1rem">Angel One</div>
+            <div class="aff-tag" style="margin:0">50+ years of trust in Indian markets</div>
+          </div>
+        </div>
+        <ul style="list-style:none;margin-bottom:14px">
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ SmartAPI for algorithmic trading</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ Free research reports & tips</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ Stocks · F&O · MF · IPO · NPS</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ 2 Cr+ registered clients</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ Award-winning mobile app</li>
+        </ul>
+        <div class="aff-cta" style="padding:10px 20px;font-size:.88rem;display:inline-block">Open Free Account with Angel One →</div>
+      </a>
+
+      <!-- Groww -->
+      <a class="aff-card" href="https://groww.in/open-demat-account?ref=YOUR_REF_CODE" target="_blank" rel="noopener sponsored" style="text-align:left;padding:24px">
+        <div class="aff-earn">Earn ₹600/referral</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+          <div style="font-size:2.4rem">🌱</div>
+          <div>
+            <div class="aff-name" style="font-size:1.1rem">Groww</div>
+            <div class="aff-tag" style="margin:0">Best app for beginners & millennials</div>
+          </div>
+        </div>
+        <ul style="list-style:none;margin-bottom:14px">
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ Super simple beginner-friendly UI</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ Indian stocks + US stocks</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ Mutual funds, FDs, Gold</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ 1 Cr+ active investors</li>
+          <li style="font-size:.82rem;color:var(--muted);padding:3px 0">✅ Instant KYC — 10 min account opening</li>
+        </ul>
+        <div class="aff-cta" style="padding:10px 20px;font-size:.88rem;display:inline-block">Open Free Account with Groww →</div>
+      </a>
+
+    </div>
+    <p class="aff-disc" style="margin-top:20px;font-size:.75rem">
+      ⚠️ <b>Affiliate Disclosure:</b> BullionX may receive a referral commission when you open an account through the links on this page. This is at absolutely no extra cost to you. We only list SEBI-registered, reputable platforms. Our analysis and signals are never influenced by affiliate relationships. All commissions help support the free tools on BullionX.
+    </p>
+  </div>
+
+  <!-- Bottom AdSense -->
+  <div style="padding:0 24px 24px">
+    <div class="ad-label">Advertisement</div>
+    <div class="ad-slot ad-slot-rect">
+      <ins class="adsbygoogle" style="display:block;width:100%;height:250px"
+        data-ad-client="ca-pub-XXXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX"
+        data-ad-format="rectangle" data-full-width-responsive="true"></ins>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PREMIUM MODAL
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="premium-modal" style="display:none" onclick="if(event.target===this)hidePremiumModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="hidePremiumModal()">✕</button>
+    <div class="modal-title">⭐ BullionX Pro</div>
+    <div class="modal-sub">Unlock the full power of BullionX — no ads, more features, priority data.</div>
+
+    <div class="plan-grid">
+      <div class="plan-card" onclick="selectPlan(this)">
+        <div class="plan-name">Monthly</div>
+        <div class="plan-price">₹199</div>
+        <div class="plan-period">per month</div>
+      </div>
+      <div class="plan-card popular selected" onclick="selectPlan(this)">
+        <div class="plan-name">Annual</div>
+        <div class="plan-price">₹999</div>
+        <div class="plan-period">per year — save ₹1,389</div>
+      </div>
+    </div>
+
+    <ul class="premium-features">
+      <li><span class="pf-icon">✅</span> <b>No advertisements</b> — clean, distraction-free experience</li>
+      <li><span class="pf-icon">✅</span> <b>500+ stocks</b> in scanner — NSE, BSE full list</li>
+      <li><span class="pf-icon">✅</span> <b>Price alerts</b> — get notified when signals trigger</li>
+      <li><span class="pf-icon">✅</span> <b>Market news</b> — live news feed per stock</li>
+      <li><span class="pf-icon">✅</span> <b>Portfolio tracker</b> — track your real trades and P&L</li>
+      <li><span class="pf-icon">✅</span> <b>Export to Excel</b> — download full scan & backtest data</li>
+      <li><span class="pf-icon">✅</span> <b>Priority support</b> — WhatsApp support from the creator</li>
+    </ul>
+
+    <!-- Payment options — replace with your actual payment links -->
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <a href="https://rzp.io/l/YOUR_RAZORPAY_LINK" target="_blank" rel="noopener"
+         class="btn btn-gold btn-full" style="text-decoration:none;font-size:1rem;padding:12px">
+        💳 Pay with Razorpay (UPI · Card · Net Banking)
+      </a>
+      <div style="text-align:center;font-size:.78rem;color:var(--muted)">
+        After payment, WhatsApp your transaction ID to activate Pro.<br>
+        Contact: <a href="https://wa.me/91XXXXXXXXXX" style="color:var(--acc2)">WhatsApp →</a>
+      </div>
+    </div>
+
+    <div style="margin-top:14px;font-size:.72rem;color:var(--muted);text-align:center;line-height:1.6">
+      Payments processed securely via Razorpay. Cancel anytime.<br>
+      BullionX Pro is a software subscription, not a financial advisory service.
+    </div>
+  </div>
+</div>
+
+<!-- AdSense Script — add your publisher ID -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+
+<script>
+const STOCK_LIST=["RELIANCE.NS","TCS.NS","HDFCBANK.NS","INFY.NS","ICICIBANK.NS","KOTAKBANK.NS","SBIN.NS","BHARTIARTL.NS","ITC.NS","WIPRO.NS","HCLTECH.NS","SUNPHARMA.NS","MARUTI.NS","TITAN.NS","AXISBANK.NS","BAJFINANCE.NS","NTPC.NS","POWERGRID.NS","ONGC.NS","ULTRACEMCO.NS","NESTLE.NS","ASIANPAINT.NS","HINDUNILVR.NS","JSWSTEEL.NS","TATAMOTORS.NS","TATASTEEL.NS","TECHM.NS","INDUSINDBK.NS","DRREDDY.NS","HDFC.NS"];
+function populateDropdowns(){["an-stock","bt-stock","pt-stock"].forEach(id=>{let s=document.getElementById(id);if(s)s.innerHTML=STOCK_LIST.map(x=>`<option value="${x}">${x}</option>`).join('');});}
+populateDropdowns();
+function generatePriceSeries(symbol,days=180){let seed=symbol.split('').reduce((a,b)=>a+b.charCodeAt(0),0);let base=300+(seed%5000),trend=(seed%5-2)*0.0003,prices=[],date=new Date(),price=base;date.setDate(date.getDate()-days);for(let i=0;i<days;i++){let change=Math.sin(i*0.07+seed)*0.018+trend+(Math.random()-0.5)*0.005;price=Math.max(15,price*(1+change));prices.push({date:new Date(date).toISOString().slice(0,10),close:price,open:price*(0.98+Math.random()*0.04),high:price*1.02,low:price*0.98});date.setDate(date.getDate()+1);}return prices;}
+function computeEMA(data,period){let k=2/(period+1),ema=[data[0]];for(let i=1;i<data.length;i++)ema.push(data[i]*k+ema[i-1]*(1-k));return ema;}
+function analyseStock(symbol,periodDays){
+  let prices=generatePriceSeries(symbol,periodDays),closes=prices.map(p=>p.close),currentPrice=closes[closes.length-1];
+  let gains=0,losses=0;for(let i=closes.length-14;i<closes.length;i++){let diff=closes[i]-closes[i-1];if(diff>=0)gains+=diff;else losses-=diff;}
+  let rsiVal=100-(100/(1+(gains/(losses||0.001))));
+  let ema10Full=computeEMA(closes,10),ema20Full=computeEMA(closes,20);
+  let ema10=ema10Full[ema10Full.length-1],ema20=ema20Full[ema20Full.length-1];
+  let recentHigh=Math.max(...closes.slice(-14)),recentLow=Math.min(...closes.slice(-14));
+  let stochK=Math.min(100,Math.max(0,((currentPrice-recentLow)/(recentHigh-recentLow||1))*100));
+  let stochD=stochK*0.7+20,atr=currentPrice*0.015,score=0,reasons=[];
+  if(rsiVal<30){score+=3;reasons.push("✅ RSI oversold (<30) → Bullish");}else if(rsiVal>70){score-=3;reasons.push("🔴 RSI overbought (>70) → Bearish");}else reasons.push("⚪ RSI neutral");
+  if(ema10>ema20){score+=2;reasons.push("✅ EMA10 above EMA20 → Uptrend");}else{score-=2;reasons.push("🔴 EMA10 below EMA20 → Downtrend");}
+  if(stochK<20){score+=2;reasons.push("✅ Stochastic oversold → Bullish");}else if(stochK>80){score-=2;reasons.push("🔴 Stochastic overbought → Bearish");}else reasons.push("⚪ Stochastic neutral");
+  let signal=score>=4?"BUY":score<=-4?"SELL":"HOLD";
+  let entry=currentPrice,sl=signal==="BUY"?currentPrice*0.98:currentPrice*1.02,t1=signal==="BUY"?currentPrice*1.03:currentPrice*0.97,t2=signal==="BUY"?currentPrice*1.06:currentPrice*0.94;
+  let risk=Math.abs(entry-sl),reward=Math.abs(t2-entry),rr=(reward/risk).toFixed(2);
+  let fib={"0.0":currentPrice,"23.6":currentPrice*0.99,"38.2":currentPrice*0.98,"50.0":currentPrice*0.975,"61.8":currentPrice*1.02,"78.6":currentPrice*1.04,"100.0":currentPrice*1.06};
+  let chartPrices=prices.slice(-50),chartCloses=chartPrices.map(p=>p.close),chartEma10=computeEMA(chartCloses,10),chartEma20=computeEMA(chartCloses,20);
+  let chartRsi=chartCloses.map((_,idx)=>{if(idx<14)return 50;let g=0,l=0;for(let i=idx-13;i<=idx;i++){let d=chartCloses[i]-chartCloses[i-1];if(d>=0)g+=d;else l-=d;}return 100-(100/(1+(g/(l||0.001))));});
+  let chartMacd=chartCloses.map((v,i)=>i>0?v-chartCloses[i-1]:0),chartSignal=chartMacd.map((v,i)=>i>0?(v+chartMacd[i-1])/2:0),chartHist=chartMacd.map((v,i)=>v-chartSignal[i]);
+  let chartStochK=chartCloses.map((c,i)=>{if(i<13)return 50;let h=Math.max(...chartCloses.slice(i-13,i+1)),l=Math.min(...chartCloses.slice(i-13,i+1));return((c-l)/(h-l||1))*100;});
+  let chartStochD=chartStochK.map((k,i)=>i>0?(k+chartStochK[i-1])/2:k);
+  let chartObj=chartPrices.map((p,i)=>({date:p.date,close:chartCloses[i],ema10:chartEma10[i]||chartCloses[i],ema20:chartEma20[i]||chartCloses[i],rsi:chartRsi[i],macd_hist:chartHist[i],macd:chartMacd[i],macd_signal:chartSignal[i],stoch_k:chartStochK[i],stoch_d:chartStochD[i]}));
+  return{symbol,signal,score,price:currentPrice,rsi:rsiVal.toFixed(1),ema10:ema10.toFixed(2),ema20:ema20.toFixed(2),stochk:stochK.toFixed(1),stochd:stochD.toFixed(1),atr:atr.toFixed(2),entry:entry.toFixed(2),sl:sl.toFixed(2),t1:t1.toFixed(2),t2:t2.toFixed(2),risk:risk.toFixed(2),reward:reward.toFixed(2),rr,fib,reasons,chart:chartObj};
+}
+const originalFetch=window.fetch;
+window.fetch=function(url,options){
+  if(typeof url==='string'&&url.startsWith('/api/')){
+    let body=options?.body?JSON.parse(options.body):{};
+    if(url==='/api/analyse'){let days={"1mo":30,"3mo":90,"6mo":180,"1y":365}[body.period]||180;return Promise.resolve(new Response(JSON.stringify(analyseStock(body.symbol||"RELIANCE.NS",days)),{status:200}));}
+    if(url==='/api/scan'){let days={"1mo":30,"3mo":90,"6mo":180}[body.period]||90;return Promise.resolve(new Response(JSON.stringify({results:STOCK_LIST.map(sym=>{let a=analyseStock(sym,days);return{symbol:sym,signal:a.signal,score:a.score,price:a.price,rsi:a.rsi,entry:a.entry,sl:a.sl,t2:a.t2,rr:a.rr};})}),{status:200}));}
+    if(url==='/api/backtest'){let days=body.period==="1y"?252:90;let prices=generatePriceSeries(body.symbol,days);let capital=body.capital||100000,balance=capital,trades=[],wins=0,losses=0;for(let i=60;i<prices.length-15;i+=30){let ind=analyseStock(body.symbol,50);let ep=prices[i-1].close;if(ind.signal==="BUY"&&balance>0){let qty=Math.floor(balance*0.2/ep);let xp=prices[Math.min(i+15,prices.length-1)].close;let pnl=(xp-ep)*qty;if(pnl>0)wins++;else losses++;balance+=pnl;trades.push({entry_date:prices[i].date,exit_date:prices[Math.min(i+15,prices.length-1)].date,entry:ep,exit:xp,qty,pnl,pnl_pct:((pnl/(ep*qty))*100).toFixed(2),win:pnl>0});}}let total_pnl=balance-capital;return Promise.resolve(new Response(JSON.stringify({symbol:body.symbol,initial_capital:capital,final_capital:balance,total_pnl,total_pnl_pct:((total_pnl/capital)*100).toFixed(2),total_trades:trades.length,win_rate:trades.length?((wins/trades.length)*100).toFixed(1):0,wins,losses,trades}),{status:200}));}
+    if(url==='/api/patterns'){let days={"1mo":30,"3mo":90,"6mo":180}[body.period]||90;let prices=generatePriceSeries(body.symbol,days);let patterns=[],names=["Hammer","Doji","Bullish Engulfing","Morning Star","Bearish Engulfing","Evening Star"],biases=["bullish","neutral","bullish","bullish","bearish","bearish"];for(let i=20;i<prices.length-1;i+=10){let n=names[i%names.length],b=biases[i%biases.length];patterns.push({date:prices[i].date,name:n,bias:b,desc:`${b==='bullish'?'🟢 Bullish reversal':b==='bearish'?'🔴 Bearish':'⚪ Indecision'} pattern`});}return Promise.resolve(new Response(JSON.stringify({patterns:patterns.slice(0,10)}),{status:200}));}
+  }
+  return originalFetch(url,options);
+};
+let lastResult=null,scannerData=[],watchlist=['RELIANCE.NS','TCS.NS','HDFCBANK.NS','INFY.NS','ICICIBANK.NS'];
+window._charts={};
+function destroyAllCharts(){Object.values(window._charts).forEach(c=>{try{c.destroy()}catch(e){}});window._charts={};}
+function safeMakeChart(id,type,labels,datasets,extra={}){
+  let canvas=document.getElementById(id);if(!canvas)return;
+  if(window._charts[id])try{window._charts[id].destroy();}catch(e){}
+  let isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  let textColor=isDark?'#8a8070':'#4a6a4a',gridColor=isDark?'#1e2228':'#d4e8d4';
+  let ctx=canvas.getContext('2d');
+  try{window._charts[id]=new Chart(ctx,{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:textColor,font:{size:10,family:'Rajdhani'}}}},scales:{x:{ticks:{color:textColor,font:{family:'Rajdhani'}},grid:{color:gridColor}},y:{ticks:{color:textColor,font:{family:'Rajdhani'}},grid:{color:gridColor},...extra.scales}}}});}
+  catch(e){console.warn('Chart error:',e);}
+}
+function renderAnalyser(d){
+  let badge=document.getElementById('an-signal-badge');
+  badge.textContent=d.signal==='BUY'?'🟢 BUY':d.signal==='SELL'?'🔴 SELL':'🟡 HOLD';
+  badge.className='signal-badge signal-'+d.signal;
+  document.getElementById('an-score-text').innerHTML='Score: '+(d.score>0?'+':'')+d.score+' / ±8';
+  document.getElementById('an-symbol-text').innerText=d.symbol;
+  document.getElementById('r-price').innerText='₹'+d.price.toFixed(2);
+  document.getElementById('r-rsi').innerText=d.rsi;
+  document.getElementById('r-ema10').innerText='₹'+d.ema10;
+  document.getElementById('r-ema20').innerText='₹'+d.ema20;
+  document.getElementById('r-stochk').innerText=d.stochk;
+  document.getElementById('r-stochd').innerText=d.stochd;
+  document.getElementById('r-atr').innerText='₹'+d.atr;
+  document.getElementById('r-entry').innerText='₹'+d.entry;
+  document.getElementById('r-sl').innerText='₹'+d.sl;
+  document.getElementById('r-t1').innerText='₹'+d.t1;
+  document.getElementById('r-t2').innerText='₹'+d.t2;
+  document.getElementById('r-risk').innerText='₹'+d.risk;
+  document.getElementById('r-reward').innerText='₹'+d.reward;
+  document.getElementById('r-rr').innerText=d.rr;
+  let fibColors=['#ff6b6b','#ffa94d','#ffd43b','#69db7c','#4dabf7','#da77f2','#ff6b6b'];
+  document.getElementById('r-fib').innerHTML=Object.entries(d.fib).map(([k,v],i)=>`<div class="fib-row"><span style="color:${fibColors[i]};font-weight:600;">${k}%</span><span style="color:${fibColors[i]};">₹${v.toFixed(2)}</span></div>`).join('');
+  document.getElementById('r-reasons').innerHTML=d.reasons.map(r=>`<li>${r}</li>`).join('');
+  let labels=d.chart.map(c=>c.date);
+  safeMakeChart('chart-price','line',labels,[{label:'Close',data:d.chart.map(c=>c.close),borderColor:'#c9922a',tension:0.3,pointRadius:0,borderWidth:2},{label:'EMA10',data:d.chart.map(c=>c.ema10),borderColor:'#f0883e',tension:0.3,pointRadius:0,borderWidth:1.5},{label:'EMA20',data:d.chart.map(c=>c.ema20),borderColor:'#bc8cff',tension:0.3,pointRadius:0,borderWidth:1.5}]);
+  safeMakeChart('chart-rsi','line',labels,[{label:'RSI',data:d.chart.map(c=>c.rsi),borderColor:'#f0b429',tension:0.3,borderWidth:2}],{scales:{y:{min:0,max:100}}});
+  safeMakeChart('chart-macd','bar',labels,[{label:'Histogram',data:d.chart.map(c=>c.macd_hist),backgroundColor:d.chart.map(v=>v.macd_hist>=0?'rgba(45,186,82,.65)':'rgba(232,64,64,.65)')},{label:'MACD',data:d.chart.map(c=>c.macd),type:'line',borderColor:'#c9922a',pointRadius:0,borderWidth:1.5},{label:'Signal',data:d.chart.map(c=>c.macd_signal),type:'line',borderColor:'#f0883e',pointRadius:0,borderWidth:1.5}]);
+  safeMakeChart('chart-stoch','line',labels,[{label:'%K',data:d.chart.map(c=>c.stoch_k),borderColor:'#79c0ff',borderWidth:1.5},{label:'%D',data:d.chart.map(c=>c.stoch_d),borderColor:'#ffa657',borderDash:[4,2],borderWidth:1.5}],{scales:{y:{min:0,max:100}}});
+  document.getElementById('an-results').style.display='block';
+}
+async function runAnalyser(){let sym=document.getElementById('an-custom').value.trim().toUpperCase()||document.getElementById('an-stock').value;let period=document.getElementById('an-period').value;let loader=document.getElementById('an-loader');loader.classList.add('show');try{let res=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:sym,period})});let data=await res.json();if(!res.ok)throw new Error(data.error);lastResult=data;renderAnalyser(data);}catch(e){alert("Analysis error: "+e.message);}finally{loader.classList.remove('show');}}
+async function runScanner(){document.getElementById('sc-loader').classList.add('show');document.getElementById('sc-progress-wrap').style.display='block';document.getElementById('sc-progress').style.width='60%';try{let res=await fetch('/api/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({period:document.getElementById('sc-period').value})});let d=await res.json();scannerData=d.results;let buys=scannerData.filter(r=>r.signal==='BUY').length,sells=scannerData.filter(r=>r.signal==='SELL').length,holds=scannerData.filter(r=>r.signal==='HOLD').length;document.getElementById('sc-buy-count').innerText=buys;document.getElementById('sc-sell-count').innerText=sells;document.getElementById('sc-hold-count').innerText=holds;document.getElementById('sc-summary').style.display='grid';document.getElementById('sc-table-wrap').style.display='block';let tbody=document.getElementById('sc-tbody');tbody.innerHTML='';scannerData.forEach(r=>{let tr=document.createElement('tr');tr.onclick=()=>{document.getElementById('an-custom').value=r.symbol;showPage('analyser',null);runAnalyser();};tr.innerHTML=`<td class="text-acc">${r.symbol}</td><td class="${r.signal==='BUY'?'text-green':r.signal==='SELL'?'text-red':'text-gold'}">${r.signal==='BUY'?'🟢 BUY':r.signal==='SELL'?'🔴 SELL':'🟡 HOLD'}</td><td>${r.score>0?'+':''}${r.score}</td><td>₹${r.price.toFixed(2)}</td><td>${r.rsi}</td><td class="text-green">₹${r.entry}</td><td class="text-red">₹${r.sl}</td><td class="text-green">₹${r.t2}</td><td class="text-gold">${r.rr}</td>`;tbody.appendChild(tr);});document.getElementById('home-scan-stat').innerHTML=`${buys} BUY | ${sells} SELL | ${holds} HOLD`;}catch(e){alert("Scan error");}finally{document.getElementById('sc-loader').classList.remove('show');document.getElementById('sc-progress').style.width='100%';}}
+function filterScanner(){if(scannerData.length)runScanner();}
+async function refreshWatchlist(){document.getElementById('wl-loader').classList.add('show');let results=[];for(let sym of watchlist){try{let res=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:sym,period:'3mo'})});if(res.ok)results.push(await res.json());}catch(e){}}let tbody=document.getElementById('wl-tbody');tbody.innerHTML='';watchlist.forEach(sym=>{let d=results.find(r=>r.symbol===sym),sig=d?.signal||'HOLD',cls=sig==='BUY'?'text-green':sig==='SELL'?'text-red':'text-gold';let tr=document.createElement('tr');tr.onclick=()=>{document.getElementById('an-custom').value=sym;showPage('analyser',null);runAnalyser();};tr.innerHTML=`<td class="text-acc">${sym}</td><td class="${cls}">${sig==='BUY'?'🟢 BUY':sig==='SELL'?'🔴 SELL':'🟡 HOLD'}</td><td>${d?`${d.score>0?'+':''}${d.score}`:'—'}</td><td>${d?`₹${d.price.toFixed(2)}`:'—'}</td><td>${d?.rsi||'—'}</td><td class="text-green">${d?`₹${d.entry}`:'—'}</td><td class="text-red">${d?`₹${d.sl}`:'—'}</td><td class="text-green">${d?`₹${d.t2}`:'—'}</td><td class="text-gold">${d?.rr||'—'}</td><td><button class="btn btn-red btn-sm" onclick="event.stopPropagation();removeWatchlist('${sym}')">✕</button></td>`;tbody.appendChild(tr);});document.getElementById('home-wl-stat').innerText=`${watchlist.length} stocks`;document.getElementById('wl-loader').classList.remove('show');}
+function addWatchlistStock(){let sym=document.getElementById('wl-add-input').value.trim().toUpperCase();if(!sym)return;if(!sym.includes('.NS'))sym+='.NS';if(!watchlist.includes(sym)){watchlist.push(sym);refreshWatchlist();}}
+function removeWatchlist(sym){watchlist=watchlist.filter(s=>s!==sym);refreshWatchlist();}
+function clearWatchlist(){if(confirm('Clear all watchlist stocks?')){watchlist=[];refreshWatchlist();}}
+async function runBacktest(){let sym=document.getElementById('bt-custom').value.trim().toUpperCase()||document.getElementById('bt-stock').value;let period=document.getElementById('bt-period').value,capital=parseInt(document.getElementById('bt-capital').value)||100000;document.getElementById('bt-loader').classList.add('show');try{let res=await fetch('/api/backtest',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:sym,period,capital})});let d=await res.json();document.getElementById('bt-summary-cards').innerHTML=[['Initial Capital',`₹${d.initial_capital.toLocaleString()}`,'text-silver'],['Final Capital',`₹${d.final_capital.toLocaleString()}`,'text-acc'],['Total P&L',`₹${d.total_pnl.toLocaleString()}`,(d.total_pnl>=0?'text-green':'text-red')],['Return %',`${d.total_pnl_pct}%`,(d.total_pnl_pct>=0?'text-green':'text-red')],['Total Trades',d.total_trades,'text-silver'],['Win Rate',`${d.win_rate}%`,'text-gold'],['Wins',d.wins,'text-green'],['Losses',d.losses,'text-red']].map(([l,v,c])=>`<div class="card"><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">${l}</div><div class="val ${c}" style="margin-top:6px;">${v}</div></div>`).join('');document.getElementById('bt-tbody').innerHTML=d.trades.map(t=>`<tr><td>${t.entry_date}</td><td>${t.exit_date}</td><td>₹${t.entry.toFixed(2)}</td><td>₹${t.exit.toFixed(2)}</td><td>${t.qty}</td><td class="${t.win?'text-green':'text-red'}">${t.pnl>0?'+':''}₹${t.pnl.toFixed(2)}</td><td class="${t.win?'text-green':'text-red'}">${t.pnl_pct}%</td><td><span class="badge ${t.win?'badge-bull':'badge-bear'}">${t.win?'WIN':'LOSS'}</span></td></tr>`).join('');document.getElementById('bt-results').style.display='block';document.getElementById('home-bt-stat').innerHTML=`${d.symbol}: ${d.total_pnl_pct}% | WR ${d.win_rate}%`;}catch(e){alert("Backtest error");}finally{document.getElementById('bt-loader').classList.remove('show');}}
+async function runPatterns(){let sym=document.getElementById('pt-custom').value.trim().toUpperCase()||document.getElementById('pt-stock').value;let period=document.getElementById('pt-period').value;document.getElementById('pt-loader').classList.add('show');try{let res=await fetch('/api/patterns',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({symbol:sym,period})});let d=await res.json();if(!d.patterns.length){document.getElementById('pt-empty').innerText=`No patterns for ${sym}`;document.getElementById('pt-table-wrap').style.display='none';return;}document.getElementById('pt-tbody').innerHTML=d.patterns.map(p=>`<tr><td class="text-muted">${p.date}</td><td style="font-weight:600;">${p.name}</td><td><span class="badge ${p.bias==='bullish'?'badge-bull':p.bias==='bearish'?'badge-bear':'badge-neut'}">${p.bias}</span></td><td class="text-muted">${p.desc}</td></tr>`).join('');document.getElementById('pt-table-wrap').style.display='block';document.getElementById('pt-empty').style.display='none';let bull=d.patterns.filter(p=>p.bias==='bullish').length,bear=d.patterns.filter(p=>p.bias==='bearish').length;document.getElementById('home-pat-stat').innerHTML=`${sym}: ${bull}🟢 ${bear}🔴`;}catch(e){alert("Pattern error");}finally{document.getElementById('pt-loader').classList.remove('show');}}
+function addToWatchlist(){if(lastResult&&!watchlist.includes(lastResult.symbol)){watchlist.push(lastResult.symbol);refreshWatchlist();alert('✅ Added '+lastResult.symbol+' to Watchlist');}}
+function toggleTheme(){let t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);document.getElementById('themeBtn').textContent=t==='dark'?'🌙  Switch to Light':'☀️  Switch to Dark';if(document.getElementById('themeBtnMobile'))document.getElementById('themeBtnMobile').textContent=t==='dark'?'🌙':'☀️';destroyAllCharts();if(lastResult)renderAnalyser(lastResult);}
+(function(){let t=localStorage.getItem('theme');if(t){document.documentElement.setAttribute('data-theme',t);if(t==='light'){document.getElementById('themeBtn').textContent='☀️  Switch to Dark';}}})();
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const page = document.getElementById('page-'+id);
+  if(page){ page.style.display='block'; page.classList.add('active'); }
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(window.innerWidth<=768)document.getElementById('sidebar').classList.remove('open');
+  // Push AdSense ads when page changes
+  try{ (adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
+
+// Premium modal
+function showPremiumModal(){ document.getElementById('premium-modal').style.display='flex'; }
+function hidePremiumModal(){ document.getElementById('premium-modal').style.display='none'; }
+function selectPlan(el){ document.querySelectorAll('.plan-card').forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); }
+
+// Init AdSense push for existing slots on load
+window.addEventListener('load',function(){
+  try{ (window.adsbygoogle=window.adsbygoogle||[]).push({}); }catch(e){}
+});
+refreshWatchlist();
+
+// ── Consent Banner ──
+function acceptConsent(){
+  localStorage.setItem('bx_consent','accepted');
+  document.getElementById('consent-bar').style.display='none';
+}
+function dismissConsent(){
+  localStorage.setItem('bx_consent','declined');
+  document.getElementById('consent-bar').style.display='none';
+}
+(function(){
+  const c = localStorage.getItem('bx_consent');
+  if(!c) setTimeout(()=>{ document.getElementById('consent-bar').style.display='flex'; }, 1200);
+})();
+
+</script>
+
+<!-- Cookie/Consent Banner -->
+<div class="consent-bar" id="consent-bar" style="display:none;">
+  <p>🍪 BullionX uses minimal cookies to remember your preferences. By continuing to use this platform, you agree to our
+    <a href="#" onclick="showPage('terms',null)">Terms of Use</a>,
+    <a href="#" onclick="showPage('privacy',null)">Privacy Policy</a>, and
+    <a href="#" onclick="showPage('disclaimer',null)">Disclaimer</a>.
+    This platform is for <b>educational purposes only</b> — not financial advice.</p>
+  <button class="cbtn consent-decline" onclick="dismissConsent()">Decline</button>
+  <button class="cbtn consent-accept" onclick="acceptConsent()">I Understand & Accept</button>
+</div>
+
+</body>
+</html>
